@@ -18,6 +18,8 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
   final _notesController = TextEditingController();
 
   bool _saving = false;
+  List<Meal> _meals = [];
+  bool _loading = true;
 
   Future<void> _saveMeal() async {
     if (!_formKey.currentState!.validate()) {
@@ -36,6 +38,7 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
       );
 
       await DatabaseService.insertMeal(meal);
+      await _loadMeals();
 
       if (!mounted) return;
 
@@ -43,19 +46,14 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
       _costController.clear();
       _notesController.clear();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Meal saved successfully!'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Meal saved successfully!')));
     } catch (error) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to save meal: $error'),
-        ),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to save meal: $error')));
     } finally {
       if (mounted) {
         setState(() {
@@ -63,6 +61,70 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
         });
       }
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMeals();
+  }
+
+  Future<void> _loadMeals() async {
+    try {
+      final meals = await DatabaseService.getMeals();
+
+      if (!mounted) return;
+
+      setState(() {
+        _meals = meals;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        _loading = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load meals: $error')));
+    }
+  }
+
+  Widget _buildSavedMeals() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_meals.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('No meals saved yet. Add your first meal!'),
+      );
+    }
+
+    return Column(
+      children: _meals.map((meal) {
+        return Card(
+          child: ListTile(
+            leading: const Icon(Icons.restaurant),
+            title: Text(meal.name),
+            subtitle: Text(
+              'Estimated cost: \$${meal.estimatedCost.toStringAsFixed(2)}',
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Delete meal',
+              onPressed: () async {
+                await DatabaseService.deleteMeal(meal.id!);
+                await _loadMeals();
+              },
+            ),
+          ),
+        );
+      }).toList(),
+    );
   }
 
   @override
@@ -110,9 +172,7 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
               validator: (value) {
                 final cost = double.tryParse(value?.trim() ?? '');
 
-                if (cost == null ||
-                    !cost.isFinite ||
-                    cost < 0) {
+                if (cost == null || !cost.isFinite || cost < 0) {
                   return 'Enter a valid nonnegative cost';
                 }
 
@@ -133,10 +193,20 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
 
             FilledButton(
               onPressed: _saving ? null : _saveMeal,
-              child: Text(
-                _saving ? 'Saving...' : 'Save Meal',
-              ),
+              child: Text(_saving ? 'Saving...' : 'Save Meal'),
             ),
+
+            const SizedBox(height: 32),
+
+            const Divider(),
+
+            const SizedBox(height: 16),
+
+            Text('Saved Meals', style: Theme.of(context).textTheme.titleLarge),
+
+            const SizedBox(height: 12),
+
+            _buildSavedMeals(),
           ],
         ),
       ),
