@@ -5,8 +5,13 @@ import 'screens/meal_editor_screen.dart';
 import 'screens/meal_details_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/settings_screen.dart';
+import 'services/database_service.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await DatabaseService.database;
+
   runApp(const BudgetBitesApp());
 }
 
