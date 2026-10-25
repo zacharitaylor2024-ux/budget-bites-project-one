@@ -3,7 +3,8 @@ class LunchLensResult {
   final int? estimateCents; // null when no data
   final int sampleCount;
   final int? baselineCents; // most recent purchase
-  const LunchLensResult(this.estimateCents, this.sampleCount, this.baselineCents);
+  const LunchLensResult(
+      this.estimateCents, this.sampleCount, this.baselineCents);
 
   String get explanation => estimateCents == null
       ? 'Log a purchase to get an estimate.'
@@ -17,3 +18,7 @@ LunchLensResult lunchLens(List<int> recentNewestFirst) {
   final mean = (valid.reduce((a, b) => a + b) / valid.length).round();
   return LunchLensResult(mean, valid.length, valid.first);
 }
+
+/// Absolute error in cents between a prediction and the actual next price.
+int absoluteErrorCents(int predictedCents, int actualCents) =>
+    (predictedCents - actualCents).abs();
