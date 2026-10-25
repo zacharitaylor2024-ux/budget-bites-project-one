@@ -17,3 +17,7 @@ LunchLensResult lunchLens(List<int> recentNewestFirst) {
   final mean = (valid.reduce((a, b) => a + b) / valid.length).round();
   return LunchLensResult(mean, valid.length, valid.first);
 }
+
+/// Absolute error in cents between a prediction and the actual next price.
+int absoluteErrorCents(int predictedCents, int actualCents) =>
+    (predictedCents - actualCents).abs();
