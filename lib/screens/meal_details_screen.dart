@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../db/database.dart';
 import '../db/models.dart';
 import '../helper/lunch_lens.dart';
+import '../widgets/lunch_lens_card.dart';
 import 'meal_editor_screen.dart';
 
 class MealDetailsScreen extends StatefulWidget {
@@ -38,6 +39,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       _meal = m;
       _purchases = ps;
       _lens = lunchLens(ps.map((p) => p.amountCents).toList()); // recalculated on every change
+      _lensDismissed = false; // new data -> show the updated estimate again
     });
   }
 
@@ -58,6 +60,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     _resetForm();
     _load();
   }
+
+  void _useDraft(int cents) => setState(() => _amount.text = (cents / 100).toStringAsFixed(2));
 
   void _startEdit(Purchase p) => setState(() {
         _editing = p;
@@ -84,7 +88,6 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
   Widget build(BuildContext context) {
     final m = _meal;
     if (m == null) return Scaffold(appBar: AppBar(), body: const Center(child: CircularProgressIndicator()));
-    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: Text(m.name), actions: [
         IconButton(tooltip: 'Edit meal', icon: const Icon(Icons.edit), onPressed: () async {
@@ -96,25 +99,11 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
         Text('${m.category}${m.targetPriceCents == null ? '' : ' · Target ${money(m.targetPriceCents!)}'}'),
         const SizedBox(height: 12),
         if (!_lensDismissed)
-          Card(color: scheme.secondaryContainer, child: Padding(padding: const EdgeInsets.all(16), child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [const Icon(Icons.lightbulb_outline), const SizedBox(width: 8),
-                Text('Lunch Lens (estimate)', style: Theme.of(context).textTheme.titleSmall)]),
-              const SizedBox(height: 8),
-              if (_lens.estimateCents != null)
-                Text('Estimated next cost: ${money(_lens.estimateCents!)}',
-                    style: Theme.of(context).textTheme.titleLarge),
-              Text(_lens.explanation),
-              const SizedBox(height: 8),
-              Row(children: [
-                if (_lens.estimateCents != null)
-                  FilledButton.tonal(onPressed: () => setState(() =>
-                      _amount.text = (_lens.estimateCents! / 100).toStringAsFixed(2)),
-                      child: const Text('Use as draft')),
-                const SizedBox(width: 8),
-                TextButton(onPressed: () => setState(() => _lensDismissed = true), child: const Text('Dismiss')),
-              ]),
-            ]))),
+          LunchLensCard(
+            lens: _lens,
+            onUseDraft: _useDraft,
+            onDismiss: () => setState(() => _lensDismissed = true),
+          ),
         const SizedBox(height: 12),
         Card(child: Padding(padding: const EdgeInsets.all(16), child: Form(key: _form, child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, children: [
