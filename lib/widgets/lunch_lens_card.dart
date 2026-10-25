@@ -27,6 +27,14 @@ class LunchLensCard extends StatelessWidget {
           if (lens.estimateCents != null)
             Text('Estimated next cost: ${money(lens.estimateCents!)}', style: text.titleLarge),
           Text(lens.explanation),
+          if (lens.baselineCents != null)
+            Text('Last paid: ${money(lens.baselineCents!)}', style: text.bodySmall),
+          if (lens.hasOutlier)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text('One recent price looks unusual, so this estimate may be off.',
+                  style: text.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
+            ),
           const SizedBox(height: 8),
           Row(children: [
             if (lens.estimateCents != null)
