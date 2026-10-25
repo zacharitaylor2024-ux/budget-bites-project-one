@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:budget_bites/helper/lunch_lens.dart';
 
 void main() {
+  absoluteErrorTests();
   test('normal: mean of 3', () => expect(lunchLens([800, 850, 810]).estimateCents, 820));
   test('empty history', () {
     final r = lunchLens([]);
@@ -16,4 +17,12 @@ void main() {
   });
   test('outlier inflates estimate', () => expect(lunchLens([2500, 800, 800, 800, 800]).estimateCents, 1140));
   test('baseline is most recent', () => expect(lunchLens([950, 800]).baselineCents, 950));
+}
+
+void absoluteErrorTests() {
+  group('absoluteErrorCents', () {
+    test('over-estimate', () => expect(absoluteErrorCents(900, 850), 50));
+    test('under-estimate', () => expect(absoluteErrorCents(800, 850), 50));
+    test('exact', () => expect(absoluteErrorCents(850, 850), 0));
+  });
 }
