@@ -63,8 +63,11 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
 
   void _startEdit(Purchase p) => setState(() {
 
-         void _useDraft(int cents) => setState(() => _amount.text = (cents / 100).toStringAsFixed(2));
-        _editing = p;
+     void _useDraft(int cents) {
+       setState(() => _amount.text = (cents / 100).toStringAsFixed(2));
+       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+           content: Text('Draft amount filled in. Edit it if needed, then tap Save.')));
+     }        _editing = p;
         _amount.text = (p.amountCents / 100).toStringAsFixed(2);
         _notes.text = p.notes ?? '';
         _date = p.purchasedAt;
