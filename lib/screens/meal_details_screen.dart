@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../db/database.dart';
 import '../db/models.dart';
 import '../helper/lunch_lens.dart';
+import '../widgets/lunch_lens_card.dart';
 import 'meal_editor_screen.dart';
 
 class MealDetailsScreen extends StatefulWidget {
@@ -38,6 +39,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       _meal = m;
       _purchases = ps;
       _lens = lunchLens(ps.map((p) => p.amountCents).toList()); // recalculated on every change
+               _lensDismissed = false; // new data -> show the updated estimate again
     });
   }
 
@@ -60,6 +62,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
   }
 
   void _startEdit(Purchase p) => setState(() {
+
+         void _useDraft(int cents) => setState(() => _amount.text = (cents / 100).toStringAsFixed(2));
         _editing = p;
         _amount.text = (p.amountCents / 100).toStringAsFixed(2);
         _notes.text = p.notes ?? '';
@@ -95,11 +99,12 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       body: ListView(padding: const EdgeInsets.all(16), children: [
         Text('${m.category}${m.targetPriceCents == null ? '' : ' · Target ${money(m.targetPriceCents!)}'}'),
         const SizedBox(height: 12),
-        if (!_lensDismissed)
-          Card(color: scheme.secondaryContainer, child: Padding(padding: const EdgeInsets.all(16), child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [const Icon(Icons.lightbulb_outline), const SizedBox(width: 8),
-                Text('Lunch Lens (estimate)', style: Theme.of(context).textTheme.titleSmall)]),
+                  if (!_lensDismissed)
+             LunchLensCard(
+               lens: _lens,
+               onUseDraft: _useDraft,
+               onDismiss: () => setState(() => _lensDismissed = true),
+             ),
               const SizedBox(height: 8),
               if (_lens.estimateCents != null)
                 Text('Estimated next cost: ${money(_lens.estimateCents!)}',
