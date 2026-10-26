@@ -81,6 +81,13 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
   }
 
   @override
+  void dispose() {
+    _amount.dispose();
+    _notes.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final m = _meal;
     if (m == null) return Scaffold(appBar: AppBar(), body: const Center(child: CircularProgressIndicator()));
