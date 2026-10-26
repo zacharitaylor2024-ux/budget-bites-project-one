@@ -5,7 +5,18 @@ import 'models.dart';
 class AppDb {
   AppDb._();
   static final instance = AppDb._();
+
   Database? _db;
+
+  Future<void> setTestDatabase(Database testDatabase) async {
+    await _db?.close();
+    _db = testDatabase;
+  }
+
+  Future<void> closeTestDatabase() async {
+    await _db?.close();
+    _db = null;
+  }
 
   Future<Database> get db async => _db ??= await openDatabase(
         join(await getDatabasesPath(), 'budget_bites.db'),
@@ -53,15 +64,20 @@ class AppDb {
   // Purchases
   Future<List<Purchase>> purchasesForMeal(int mealId, {int? limit}) async {
     final r = await (await db).query('purchases',
-        where: 'meal_id = ?', whereArgs: [mealId], orderBy: 'purchased_at DESC, id DESC', limit: limit);
+        where: 'meal_id = ?',
+        whereArgs: [mealId],
+        orderBy: 'purchased_at DESC, id DESC',
+        limit: limit);
     return r.map(Purchase.fromMap).toList();
   }
 
-  Future<List<Map<String, Object?>>> history(DateTime from, DateTime to) async =>
+  Future<List<Map<String, Object?>>> history(
+          DateTime from, DateTime to) async =>
       (await db).rawQuery('''SELECT p.*, m.name AS meal_name FROM purchases p
         JOIN meals m ON m.id = p.meal_id
         WHERE p.purchased_at >= ? AND p.purchased_at < ?
-        ORDER BY p.purchased_at DESC''', [from.toIso8601String(), to.toIso8601String()]);
+        ORDER BY p.purchased_at DESC''',
+          [from.toIso8601String(), to.toIso8601String()]);
 
   Future<int> totalBetween(DateTime from, DateTime to) async {
     final r = await (await db).rawQuery(
@@ -75,7 +91,8 @@ class AppDb {
     if (p.id == null) {
       await d.insert('purchases', p.toMap());
     } else {
-      await d.update('purchases', p.toMap(), where: 'id = ?', whereArgs: [p.id]);
+      await d
+          .update('purchases', p.toMap(), where: 'id = ?', whereArgs: [p.id]);
     }
   }
 
@@ -86,6 +103,7 @@ class AppDb {
 /// Monday 00:00 of the current week through next Monday.
 (DateTime, DateTime) currentWeek() {
   final now = DateTime.now();
-  final start = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+  final start = DateTime(now.year, now.month, now.day)
+      .subtract(Duration(days: now.weekday - 1));
   return (start, start.add(const Duration(days: 7)));
 }
