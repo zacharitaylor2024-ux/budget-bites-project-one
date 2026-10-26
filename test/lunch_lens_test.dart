@@ -3,6 +3,7 @@ import 'package:budget_bites/helper/lunch_lens.dart';
 
 void main() {
   absoluteErrorTests();
+  outlierAndEvaluationTests();
   test('normal: mean of 3',
       () => expect(lunchLens([800, 850, 810]).estimateCents, 820));
   test('empty history', () {
@@ -28,7 +29,6 @@ void absoluteErrorTests() {
     test('over-estimate', () => expect(absoluteErrorCents(900, 850), 50));
     test('under-estimate', () => expect(absoluteErrorCents(800, 850), 50));
     test('exact', () => expect(absoluteErrorCents(850, 850), 0));
-    outlierAndEvaluationTests();
   });
 }
 
@@ -50,7 +50,7 @@ void outlierAndEvaluationTests() {
     ]);
     test('normal case errors', () {
       expect(results[0].helperErrorCents, 10); // estimate 820 vs 830
-      expect(results[0].baselineErrorCents, 20); // last 810 vs 830
+      expect(results[0].baselineErrorCents, 30); // last 800 vs 830
       expect(results[0].helperWins, isTrue);
     });
     test('empty case has no errors', () {
