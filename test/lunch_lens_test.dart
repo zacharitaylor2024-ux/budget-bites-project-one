@@ -2,13 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:budget_bites/helper/lunch_lens.dart';
 
 void main() {
+  absoluteErrorTests();
   test('normal: mean of 3',
       () => expect(lunchLens([800, 850, 810]).estimateCents, 820));
   test('empty history', () {
     final r = lunchLens([]);
     expect(r.estimateCents, isNull);
     expect(r.explanation, 'Log a purchase to get an estimate.');
-    absoluteErrorTests();
   });
   test('ignores invalid amounts',
       () => expect(lunchLens([0, -200, 900]).estimateCents, 900));
