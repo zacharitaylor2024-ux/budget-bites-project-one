@@ -8,8 +8,38 @@ import 'meal_editor_screen.dart';
 import 'settings_screen.dart';
 import '../utils/budget_calculator.dart';
 
+typedef DashboardLoader = Future<DashboardData> Function(String? category);
+
+class DashboardData {
+  final List<Meal> meals;
+  final int weekTotal;
+
+  const DashboardData({
+    required this.meals,
+    required this.weekTotal,
+  });
+}
+
+Future<DashboardData> loadDashboardData(String? category) async {
+  final (start, end) = currentWeek();
+
+  final meals = await AppDb.instance.meals(category: category);
+  final total = await AppDb.instance.totalBetween(start, end);
+
+  return DashboardData(
+    meals: meals,
+    weekTotal: total,
+  );
+}
+
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final DashboardLoader loader;
+
+  const DashboardScreen({
+    super.key,
+    this.loader = loadDashboardData,
+  });
+
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
@@ -26,20 +56,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _load() async {
-    final (s, e) = currentWeek();
-    final meals = await AppDb.instance.meals(category: _filter);
-    final total = await AppDb.instance.totalBetween(s, e);
-    if (mounted) {
-      setState(() {
-        _meals = meals;
-        _weekTotal = total;
-      });
-    }
+    final data = await widget.loader(_filter);
+
+    if (!mounted) return;
+
+    setState(() {
+      _meals = data.meals;
+      _weekTotal = data.weekTotal;
+    });
   }
 
   Future<void> _go(Widget page) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-    _load();
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => page),
+    );
+
+    if (mounted) {
+      await _load();
+    }
   }
 
   @override
