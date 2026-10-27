@@ -102,12 +102,21 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
   }
 
   @override
+  void dispose() {
+    _amount.dispose();
+    _notes.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final m = _meal;
-    if (m == null)
+    if (m == null) {
       return Scaffold(
-          appBar: AppBar(),
-          body: const Center(child: CircularProgressIndicator()));
+        appBar: AppBar(),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       appBar: AppBar(title: Text(m.name), actions: [
         IconButton(
@@ -144,19 +153,25 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                                   : 'Edit purchase',
                               style: Theme.of(context).textTheme.titleMedium),
                           TextFormField(
-                              controller: _amount,
-                              decoration: const InputDecoration(
-                                  labelText: 'Amount *', prefixText: '\$'),
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                      decimal: true),
-                              validator: (v) {
-                                final c = parseCents(v ?? '');
-                                if (c == null) return 'Enter an amount';
-                                if (c <= 0)
-                                  return 'Amount must be greater than \$0';
-                                return null;
-                              }),
+                            controller: _amount,
+                            decoration: const InputDecoration(
+                                labelText: 'Amount *', prefixText: '\$'),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            validator: (v) {
+                              final c = parseCents(v ?? '');
+
+                              if (c == null) {
+                                return 'Enter an amount';
+                              }
+
+                              if (c <= 0) {
+                                return 'Amount must be greater than \$0';
+                              }
+
+                              return null;
+                            },
+                          ),
                           TextFormField(
                               controller: _notes,
                               decoration: const InputDecoration(

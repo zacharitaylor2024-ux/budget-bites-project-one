@@ -71,6 +71,13 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
   }
 
   @override
+  void dispose() {
+    _name.dispose();
+    _price.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) => Scaffold(
         appBar:
             AppBar(title: Text(widget.meal == null ? 'New meal' : 'Edit meal')),
